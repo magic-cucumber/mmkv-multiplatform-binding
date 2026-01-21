@@ -280,6 +280,14 @@ expect val MMKV.Companion.defaultLoader: MMKVOptions.MMKVCLibLoader
  * Initialize MMKV
  * @param path storage path
  * @param conf options
+ * ---
+ * Note:
+ *
+ * On iOS, use `initializeWithMultiProcess` to enable multi-process support.
+ *
+ * On Android, MMKVCLibLoader should return the packaged so file name.
+ *
+ * On JVM platform, return the absolute path to dll/so/dylib.
  */
 fun MMKV.Companion.initialize(path: String, conf: MMKVOptions.() -> Unit = {}) =
     MMKV.initialize(path, MMKVOptions().apply(conf))
@@ -287,7 +295,15 @@ fun MMKV.Companion.initialize(path: String, conf: MMKVOptions.() -> Unit = {}) =
 /**
  * Initialize MMKV
  * @param path storage path
- * @param conf options
+ * @param options options
+ * ---
+ * Note:
+ *
+ * On iOS, use `initializeWithMultiProcess` to enable multi-process support.
+ *
+ * On Android, MMKVCLibLoader should return the packaged so file name.
+ *
+ * On JVM platform, return the absolute path to dll/so/dylib.
  */
 expect fun MMKV.Companion.initialize(path: String, options: MMKVOptions)
 

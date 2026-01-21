@@ -14,7 +14,7 @@ object NativeMMKVImpl {
     fun defaultMMKV(mode: MMKVMode, cryptKey: String?): NSObject = mmkvWithID("mmkv.default", mode, cryptKey)
 
     fun mmkvWithID(id: String, mode: MMKVMode, cryptKey: String?): NSObject {
-        val mmkv =  cryptKey?.encodeToByteArray()?.useAsNSData {
+        val mmkv = cryptKey?.encodeToByteArray()?.useAsNSData {
             MMKV.mmkvWithID(mmapID = id, cryptKey = this, mode = mode)!!
         } ?: MMKV.mmkvWithID(mmapID = id, cryptKey = null, mode = mode)!!
 
@@ -23,8 +23,11 @@ object NativeMMKVImpl {
         return mmkv
     }
 
-    fun initialize(path: String, level: ULong, log: (ULong, String, String) -> Unit) {
+    fun initializeByPath(path: String, level: ULong, log: (ULong, String, String) -> Unit) {
         MMKV.initializeMMKV(rootDir = path, logLevel = level, handler = MMKVHandler(log))
+    }
+    fun initializeByGroup(group: String, level: ULong, log: (ULong, String, String) -> Unit) {
+        MMKV.initializeMMKV(rootDir = group, groupDir = group, logLevel = level, handler = MMKVHandler(log))
     }
 
     fun setInt(handle: NSObject, key: String, value: Int, expire: Int) {

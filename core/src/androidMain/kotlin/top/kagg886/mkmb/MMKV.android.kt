@@ -135,6 +135,7 @@ actual fun MMKV.Companion.initialize(
     path: String,
     options: MMKVOptions
 ) {
+    if (_initialized.value) error("MMKV was already initialized")
     NativeMMKV.initialize(options.libLoader.load())
     val data = MMKVInternalLog { level, tag, message ->
         options.logFunc.invoke(MMKVOptions.LogLevel.from(level), tag, message)

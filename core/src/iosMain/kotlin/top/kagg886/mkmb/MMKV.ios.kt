@@ -9,42 +9,42 @@ internal class AppleMMKV(internal val handle: NSObject) : MMKV {
 
     override fun set(key: String, value: Int, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setInt(handle, key, value,expire)
+        NativeMMKVImpl.setInt(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: String,expire: Int) {
+    override fun set(key: String, value: String, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setString(handle, key, value,expire)
+        NativeMMKVImpl.setString(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: ByteArray,expire: Int) {
+    override fun set(key: String, value: ByteArray, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setData(handle, key, value,expire)
+        NativeMMKVImpl.setData(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: List<String>,expire: Int) {
+    override fun set(key: String, value: List<String>, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setStringList(handle, key, value,expire)
+        NativeMMKVImpl.setStringList(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: Boolean,expire: Int) {
+    override fun set(key: String, value: Boolean, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setBool(handle, key, value,expire)
+        NativeMMKVImpl.setBool(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: Long,expire: Int) {
+    override fun set(key: String, value: Long, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setLong(handle, key, value,expire)
+        NativeMMKVImpl.setLong(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: Float,expire: Int) {
+    override fun set(key: String, value: Float, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setFloat(handle, key, value,expire)
+        NativeMMKVImpl.setFloat(handle, key, value, expire)
     }
 
-    override fun set(key: String, value: Double,expire: Int) {
+    override fun set(key: String, value: Double, expire: Int) {
         if (!alive) throw MMKVException("MMKV instance $handle was destroyed")
-        NativeMMKVImpl.setDouble(handle, key, value,expire)
+        NativeMMKVImpl.setDouble(handle, key, value, expire)
     }
 
     override fun getInt(key: String): Int {
@@ -137,7 +137,23 @@ actual fun MMKV.Companion.mmkvWithID(id: String, mode: MMKVMode, cryptKey: Strin
 }
 
 actual fun MMKV.Companion.initialize(path: String, options: MMKVOptions) {
-    NativeMMKVImpl.initialize(path, options.logLevel.ordinal.toULong()) { level, tag, it ->
+    if (_initialized.value) error("MMKV was already initialized")
+    NativeMMKVImpl.initializeByPath(path, options.logLevel.ordinal.toULong()) { level, tag, it ->
+        options.logFunc(MMKVOptions.LogLevel.from(level.toInt()), tag, it)
+    }
+    _initialized.update { true }
+    options.logFunc(MMKVOptions.LogLevel.Warning, "mmkv-multiplatform-binding", "you are calling the MMKV initialize function on iOS. this function can't support multi-process mode. to support multi-process-mode, you should call 'initializeWithMultiProcess'")
+}
+
+/**
+ * # Initialize MMKV with multi-process support on iOS
+ * Initialize MMKV with App Groups to enable data sharing across processes
+ * @param group App Group identifier (e.g., obtained from NSFileManager.defaultManager.containerURLForSecurityApplicationGroupIdentifier("group.***")?.path?.toPath())
+ * @param options MMKV configuration options
+ * @see initialize
+ */
+fun MMKV.Companion.initializeWithMultiProcess(group: String, options: MMKVOptions) {
+    NativeMMKVImpl.initializeByGroup(group, options.logLevel.ordinal.toULong()) { level, tag, it ->
         options.logFunc(MMKVOptions.LogLevel.from(level.toInt()), tag, it)
     }
     _initialized.update { true }
