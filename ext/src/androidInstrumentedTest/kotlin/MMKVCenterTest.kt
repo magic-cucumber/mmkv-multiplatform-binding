@@ -26,6 +26,7 @@ import kotlin.collections.listOf
 class MMKVCenterTest {
     @Before
     fun beforeAll() {
+        if (MMKV.initialized) return
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         appContext.cacheDir.listFiles()?.forEach(File::deleteRecursively)
         MMKV.initialize(appContext.cacheDir.absolutePath) {
