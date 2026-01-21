@@ -19,13 +19,12 @@ import kotlin.time.Duration.Companion.seconds
 class MMKVReadWriteTest {
     @Before
     fun beforeAll() {
-        if (!MMKV.initialized) {
-            val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-            appContext.cacheDir.listFiles()?.forEach(File::deleteRecursively)
-            MMKV.initialize(appContext.cacheDir.absolutePath) {
-                logFunc = { _,tag,string->
-                    println("$tag : $string")
-                }
+        if (MMKV.initialized) return
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        appContext.cacheDir.listFiles()?.forEach(File::deleteRecursively)
+        MMKV.initialize(appContext.cacheDir.absolutePath) {
+            logFunc = { _,tag,string->
+                println("$tag : $string")
             }
         }
     }

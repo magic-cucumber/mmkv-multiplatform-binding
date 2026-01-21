@@ -14,6 +14,7 @@ import java.io.File
 class MMKVCryptKeyTest {
     @Before
     fun beforeAll() {
+        if (MMKV.initialized) return
         if (!MMKV.initialized) {
             val appContext = InstrumentationRegistry.getInstrumentation().targetContext
             appContext.cacheDir.listFiles()?.forEach(File::deleteRecursively)

@@ -12,6 +12,7 @@ import java.io.File
 class MMKVOtherTest {
     @Before
     fun beforeAll() {
+        if (MMKV.initialized) return
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         appContext.cacheDir.listFiles()?.forEach(File::deleteRecursively)
         MMKV.initialize(appContext.cacheDir.absolutePath) {

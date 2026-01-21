@@ -32,16 +32,15 @@ import kotlin.time.Duration.Companion.seconds
 class MMKVFlowTest {
     @BeforeTest
     fun beforeAll() {
-        if (!MMKV.initialized) {
-            val testFile = "mmkv-ext-flow-test".toPath().apply {
-                if (FileSystem.SYSTEM.exists(this)) {
-                    FileSystem.SYSTEM.deleteRecursively(this)
-                }
-                FileSystem.SYSTEM.createDirectory(this)
+        if (MMKV.initialized) return
+        val testFile = "mmkv-ext-flow-test".toPath().apply {
+            if (FileSystem.SYSTEM.exists(this)) {
+                FileSystem.SYSTEM.deleteRecursively(this)
             }
-            MMKV.initialize(FileSystem.SYSTEM.canonicalize(testFile.normalized()).toString()) {
-                logLevel = MMKVOptions.LogLevel.Debug
-            }
+            FileSystem.SYSTEM.createDirectory(this)
+        }
+        MMKV.initialize(FileSystem.SYSTEM.canonicalize(testFile.normalized()).toString()) {
+            logLevel = MMKVOptions.LogLevel.Debug
         }
     }
 
