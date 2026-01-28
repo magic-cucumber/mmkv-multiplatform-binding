@@ -27,7 +27,7 @@ object NativeMMKVImpl {
         MMKV.initializeMMKV(rootDir = path, logLevel = level, handler = MMKVHandler(log))
     }
     fun initializeByGroup(group: String, level: ULong, log: (ULong, String, String) -> Unit) {
-        MMKV.initializeMMKV(rootDir = group, groupDir = group, logLevel = level, handler = MMKVHandler(log))
+        MMKV.initializeMMKV(rootDir = null, groupDir = group, logLevel = level, handler = MMKVHandler(log))
     }
 
     fun setInt(handle: NSObject, key: String, value: Int, expire: Int) {
