@@ -27,8 +27,7 @@ val processBuild = tasks.register<Exec>("processBuild") {
             mkdir -p build && \
             cd build && \
             cmake .. && \
-            make && \
-            sha256sum libmmkvc.so | cut -d ' ' -f 1 > build-linux.hash
+            make
         """.trimIndent()
     )
 }
@@ -37,7 +36,6 @@ val processBuild = tasks.register<Exec>("processBuild") {
 tasks.named<ProcessResources>("processResources") {
     dependsOn(processBuild)
     from(project.file("native-binding-linux/build/libmmkvc.so"))
-    from(project.file("native-binding-linux/build/build-linux.hash"))
 }
 
 publishing(KotlinJvm())

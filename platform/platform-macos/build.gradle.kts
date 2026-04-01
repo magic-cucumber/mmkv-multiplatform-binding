@@ -26,8 +26,7 @@ val processBuild = tasks.register<Exec>("processBuild") {
             mkdir -p build && \
             cd build && \
             cmake .. && \
-            make &&\
-            echo $(shasum -a 256 libmmkvc.dylib | cut -d ' ' -f 1) > build-macos.hash
+            make
         """.trimIndent()
     )
 }
@@ -36,7 +35,6 @@ val processBuild = tasks.register<Exec>("processBuild") {
 tasks.named<ProcessResources>("processResources") {
     dependsOn(processBuild)
     from(project.file("native-binding-macos/build/libmmkvc.dylib"))
-    from(project.file("native-binding-macos/build/build-macos.hash"))
 }
 
 
