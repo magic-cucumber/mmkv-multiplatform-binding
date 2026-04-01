@@ -1,18 +1,18 @@
 [versions]
-atomicfu = "0.27.0"
-dokka-gradle-plugin-version = "2.0.0"
-kotlin = "2.1.0"
-kotlinx-atomicfu = "0.27.0"
-agp = "8.6.1"
+atomicfu = "0.32.1"
+dokka-gradle-plugin-version = "2.2.0"
+kotlin = "2.3.20"
+kotlinx-atomicfu = "0.32.1"
+agp = "8.13.2"
 junit = "4.13.2"
-junit-version = "1.2.1"
-espresso-core = "3.6.1"
+junit-version = "1.3.0"
+espresso-core = "3.7.0"
 kotlinx-coroutines-core = "1.10.2"
-okio = "3.11.0"
-compose = "1.8.1"
-androidx-activity-compose = "1.10.1"
-maven-publish = "0.34.0"
-kotlinx-io = "0.7.0"
+okio = "3.17.0"
+compose = "1.10.3"
+androidx-activity-compose = "1.13.0"
+maven-publish = "0.36.0"
+kotlinx-io = "0.9.0"
 
 [libraries]
 atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
@@ -41,6 +41,6 @@ kotlin-android-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", versi
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlinx-atomicfu = { id = "org.jetbrains.kotlinx.atomicfu", version.ref = "kotlinx-atomicfu" }
-maven-publish = { id = "com.vanniktech.maven.publish", version = "0.34.0" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
 compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

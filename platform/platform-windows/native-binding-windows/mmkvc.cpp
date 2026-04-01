@@ -29,18 +29,25 @@ static char* stringToChar(const std::string& ptr) {
     return rtn;
 }
 
-typedef void (Logger)(int,const char*,const char*);
+typedef void(Logger)(int, const char *, const char *);
 
-static Logger* g_logger = nullptr;
-static void LogCallback(MMKVLogLevel level, const char* file, int line, const char* function, MMKVLog_t message) {
-    if (g_logger) {
-        g_logger(level,file, message.c_str());
+class KotlinMMKVHandler : public mmkv::MMKVHandler {
+public:
+    explicit KotlinMMKVHandler(Logger *logger) : m_logger(logger) {}
+
+    void mmkvLog(MMKVLogLevel level, const char *file, int line, const char *function, MMKVLog_t message) override {
+        if (m_logger) {
+            m_logger(level, file, message.c_str());
+        }
     }
-}
 
-extern "C" __declspec(dllexport) void mmkvc_init(char* path,int level,Logger* logger) {
-    g_logger = logger;
-    MMKV::initializeMMKV(stringToWString(path), (MMKVLogLevel)level,LogCallback);
+private:
+    Logger *m_logger = nullptr;
+};
+
+extern "C" __declspec(dllexport) void mmkvc_init(const char *path, int level, Logger *logger) {
+    auto *handler = new KotlinMMKVHandler(logger); //TODO will not be free, but it should initialize once
+    MMKV::initializeMMKV(path, (MMKVLogLevel) level, handler);
 }
 
 extern "C" __declspec(dllexport) MMKV* mmkvc_defaultMMKV(int mode, char* cryptKey) {

@@ -17,58 +17,48 @@ using namespace std;
         return result;                                        \
     })(env, jstr)
 
-static jobject logHandler;
-
-JavaVM* jvm = nullptr;
-
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-    JNIEnv* env = nullptr;
-    if (vm->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
-        return JNI_ERR;
+class KotlinMMKVHandler : public mmkv::MMKVHandler {
+public:
+    KotlinMMKVHandler(JNIEnv *env, jobject logger) {
+        env->GetJavaVM(&m_jvm);
+        m_logger = env->NewGlobalRef(logger);
+        auto loggerClass = env->GetObjectClass(logger);
+        m_invoke = env->GetMethodID(loggerClass, "invoke", "(ILjava/lang/String;Ljava/lang/String;)V");
     }
-    jvm = vm;
-    return JNI_VERSION_1_6;
-}
 
-void GetJNIEnv(JNIEnv*& env) {
-    int status = jvm->GetEnv((void**)&env, JNI_VERSION_1_6);
-    // Determine whether the current native thread is attached to the JVM
-    switch (status) {
-        case JNI_EDETACHED: {
-            jvm->AttachCurrentThread(&env, nullptr);
-            break;
+    void mmkvLog(MMKVLogLevel level, const char *file, int line, const char *function, MMKVLog_t message) override {
+        if (m_jvm == nullptr || m_logger == nullptr || m_invoke == nullptr) {
+            return;
         }
 
-        case JNI_OK: {
-            break;
+        JNIEnv *env = nullptr;
+        bool shouldDetach = false;
+        int status = m_jvm->GetEnv((void **) &env, JNI_VERSION_1_6);
+        if (status == JNI_EDETACHED) {
+            if (m_jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+                return;
+            }
+            shouldDetach = true;
+        } else if (status != JNI_OK) {
+            return;
         }
 
-        case JNI_EVERSION: {
-            break;
-        }
+        jstring jFile = env->NewStringUTF(file);
+        jstring jMessage = env->NewStringUTF(message.c_str());
+        env->CallVoidMethod(m_logger, m_invoke, (jint) level, jFile, jMessage);
+        env->DeleteLocalRef(jFile);
+        env->DeleteLocalRef(jMessage);
 
-        default: {
-            break;
+        if (shouldDetach) {
+            m_jvm->DetachCurrentThread();
         }
     }
-}
 
-static void LogCallback(MMKVLogLevel level,
-                        const char* file,
-                        int line,
-                        const char* function,
-                        MMKVLog_t message) {
-    JNIEnv* global = nullptr;
-    GetJNIEnv(global);
-    jmethodID j2 = global->GetMethodID(
-            global->FindClass("top/kagg886/mkmb/MMKVInternalLog"), "invoke",
-            "(ILjava/lang/String;Ljava/lang/String;)V");
-
-    jstring jFile = global->NewStringUTF(file);
-    jstring jMessage = global->NewStringUTF(message.c_str());
-
-    global->CallVoidMethod(logHandler, j2, (jint)level, jFile, jMessage);
-}
+private:
+    JavaVM *m_jvm = nullptr;
+    jobject m_logger = nullptr;
+    jmethodID m_invoke = nullptr;
+};
 
 extern "C" JNIEXPORT void JNICALL
 Java_top_kagg886_mkmb_NativeMMKV_mmkvc_1init(JNIEnv* env,
@@ -76,10 +66,9 @@ Java_top_kagg886_mkmb_NativeMMKV_mmkvc_1init(JNIEnv* env,
                                              jstring path,
                                              jint level,
                                              jobject callback) {
-    logHandler = env->NewGlobalRef(callback);
-
     auto rootDir = jstring2cppstring(env, path);
-    MMKV::initializeMMKV(rootDir, (MMKVLogLevel)level, LogCallback);
+    auto *handler = callback != nullptr ? new KotlinMMKVHandler(env, callback) : nullptr; // initialized once by JVM side
+    MMKV::initializeMMKV(rootDir, (MMKVLogLevel) level, handler);
 }
 
 extern "C" JNIEXPORT jlong JNICALL

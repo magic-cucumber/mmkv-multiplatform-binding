@@ -1,11 +1,12 @@
+#include <memory>
 #include <string>
 #include "MMKV/MMKV.h"
 
-static char* stringToChar(const std::string& ptr) {
+static char *stringToChar(const std::string &ptr) {
     // get the memory in the C++ class and place it 'C like' for Java to read
     // and recycle.
     auto len = ptr.size() + 1;
-    auto rtn = (char*)malloc(len);
+    auto rtn = (char *) malloc(len);
 
     if (rtn == nullptr) {
         return nullptr;
@@ -15,31 +16,34 @@ static char* stringToChar(const std::string& ptr) {
     return rtn;
 }
 
-typedef void(Logger)(int, const char*, const char*);
+typedef void(Logger)(int, const char *, const char *);
 
-static Logger* g_logger = nullptr;
-static void LogCallback(MMKVLogLevel level,
-                        const char* file,
-                        int line,
-                        const char* function,
-                        MMKVLog_t message) {
-    if (g_logger) {
-        g_logger(level, file, message.c_str());
+class KotlinMMKVHandler : public mmkv::MMKVHandler {
+public:
+    explicit KotlinMMKVHandler(Logger *logger) : m_logger(logger) {}
+
+    void mmkvLog(MMKVLogLevel level, const char *file, int line, const char *function, MMKVLog_t message) override {
+        if (m_logger) {
+            m_logger(level, file, message.c_str());
+        }
     }
+
+private:
+    Logger *m_logger = nullptr;
+};
+
+extern "C" void mmkvc_init(const char *path, int level, Logger *logger) {
+    auto *handler = new KotlinMMKVHandler(logger); //TODO will not be free, but it should initialize once
+    MMKV::initializeMMKV(path, (MMKVLogLevel) level, handler);
 }
 
-extern "C" void mmkvc_init(char* path, int level, Logger* logger) {
-    g_logger = logger;
-    MMKV::initializeMMKV(path, (MMKVLogLevel)level, LogCallback);
-}
-
-extern "C" MMKV* mmkvc_defaultMMKV(int mode, char* cryptKey) {
-    MMKV* mmkv = nullptr;
+extern "C" MMKV *mmkvc_defaultMMKV(int mode, char *cryptKey) {
+    MMKV *mmkv = nullptr;
     if (cryptKey != nullptr && strlen(cryptKey) > 0) {
         std::string crypt(cryptKey);
-        mmkv = MMKV::defaultMMKV((MMKVMode)mode, &crypt);
+        mmkv = MMKV::defaultMMKV((MMKVMode) mode, &crypt);
     } else {
-        mmkv = MMKV::defaultMMKV((MMKVMode)mode);
+        mmkv = MMKV::defaultMMKV((MMKVMode) mode);
     }
 
     if (mmkv == nullptr) {
@@ -50,105 +54,105 @@ extern "C" MMKV* mmkvc_defaultMMKV(int mode, char* cryptKey) {
     return mmkv;
 }
 
-extern "C" MMKV* mmkvc_mmkvWithID(char* id, int mode, char* cryptKey) {
-    MMKV* mmkv = nullptr;
+extern "C" MMKV *mmkvc_mmkvWithID(char *id, int mode, char *cryptKey) {
+    MMKV *mmkv = nullptr;
     if (cryptKey != nullptr && strlen(cryptKey) > 0) {
         std::string crypt(cryptKey);
-        mmkv = MMKV::mmkvWithID(id, (MMKVMode)mode, &crypt);
+        mmkv = MMKV::mmkvWithID(id, (MMKVMode) mode, &crypt);
     } else {
-        mmkv = MMKV::mmkvWithID(id, (MMKVMode)mode);
+        mmkv = MMKV::mmkvWithID(id, (MMKVMode) mode);
     }
     if (mmkv == nullptr) {
         return nullptr;
     }
-    
+
     mmkv->enableAutoKeyExpire(MMKV::ExpireNever);
     return mmkv;
 }
 
-extern "C" int mmkvc_getInt(MMKV* mmkv, const char* key) {
+extern "C" int mmkvc_getInt(MMKV *mmkv, const char *key) {
     return mmkv->getInt32(key);
 }
 
-extern "C" void mmkvc_setInt(MMKV* mmkv,
-                             const char* key,
+extern "C" void mmkvc_setInt(MMKV *mmkv,
+                             const char *key,
                              int value,
                              int expire) {
     mmkv->set(value, key, expire);
 }
 
-extern "C" const char* mmkvc_getString(MMKV* mmkv, const char* key) {
+extern "C" const char *mmkvc_getString(MMKV *mmkv, const char *key) {
     std::string ptr;
     mmkv->getString(key, ptr);
 
     return stringToChar(ptr);
 }
 
-extern "C" void mmkvc_setString(MMKV* mmkv,
-                                const char* key,
-                                char* value,
+extern "C" void mmkvc_setString(MMKV *mmkv,
+                                const char *key,
+                                char *value,
                                 int expire) {
     auto str = std::string(value);
     mmkv->set(str, key, expire);
 }
 
-extern "C" float mmkvc_getFloat(MMKV* mmkv, const char* key) {
+extern "C" float mmkvc_getFloat(MMKV *mmkv, const char *key) {
     return mmkv->getFloat(key);
 }
 
-extern "C" void mmkvc_setFloat(MMKV* mmkv,
-                               const char* key,
+extern "C" void mmkvc_setFloat(MMKV *mmkv,
+                               const char *key,
                                float value,
                                int expire) {
     mmkv->set(value, key, expire);
 }
 
-extern "C" long mmkvc_getLong(MMKV* mmkv, const char* key) {
+extern "C" long mmkvc_getLong(MMKV *mmkv, const char *key) {
     return mmkv->getInt64(key);
 }
 
-extern "C" void mmkvc_setLong(MMKV* mmkv,
-                              const char* key,
+extern "C" void mmkvc_setLong(MMKV *mmkv,
+                              const char *key,
                               int64_t value,
                               int expire) {
     mmkv->set(value, key, expire);
 }
 
-extern "C" double mmkvc_getDouble(MMKV* mmkv, const char* key) {
+extern "C" double mmkvc_getDouble(MMKV *mmkv, const char *key) {
     return mmkv->getDouble(key);
 }
 
-extern "C" void mmkvc_setDouble(MMKV* mmkv,
-                                const char* key,
+extern "C" void mmkvc_setDouble(MMKV *mmkv,
+                                const char *key,
                                 double value,
                                 int expire) {
     mmkv->set(value, key, expire);
 }
 
-extern "C" bool mmkvc_getBool(MMKV* mmkv, const char* key) {
+extern "C" bool mmkvc_getBool(MMKV *mmkv, const char *key) {
     return mmkv->getBool(key);
 }
 
-extern "C" void mmkvc_setBool(MMKV* mmkv,
-                              const char* key,
+extern "C" void mmkvc_setBool(MMKV *mmkv,
+                              const char *key,
                               bool value,
                               int expire) {
     mmkv->set(value, key, expire);
 }
 
-extern "C" uint8_t* mmkvc_getByteArray(MMKV* mmkv,
-                                       const char* key,
-                                       size_t* size) {
+extern "C" uint8_t *mmkvc_getByteArray(MMKV *mmkv,
+                                       const char *key,
+                                       size_t *size) {
     auto buffer = mmkv->getBytes(key);
-    auto rtn = (uint8_t*)malloc(buffer.length());
+    auto rtn = (uint8_t *) malloc(buffer.length());
     *size = buffer.length();
     memcpy(rtn, buffer.getPtr(), buffer.length());
     return rtn;
 }
 
-extern "C" void mmkvc_setByteArray(MMKV* mmkv,
-                                   const char* key,
-                                   uint8_t* value,
+extern "C" void mmkvc_setByteArray(MMKV *mmkv,
+                                   const char *key,
+                                   uint8_t *value,
                                    size_t size,
                                    int expire) {
     auto buffer = mmkv::MMBuffer(value, size, mmkv::MMBufferNoCopy);
@@ -156,36 +160,36 @@ extern "C" void mmkvc_setByteArray(MMKV* mmkv,
 }
 
 struct MMKVCStringListReturn {
-    char** items;
+    char **items;
     size_t size;
 };
 
-extern "C" MMKVCStringListReturn* mmkvc_getStringList(MMKV* mmkv,
-                                                      const char* key) {
+extern "C" MMKVCStringListReturn *mmkvc_getStringList(MMKV *mmkv,
+                                                      const char *key) {
     std::vector<std::string> vector;
     mmkv->getVector(key, vector);
 
-    auto rtn = (MMKVCStringListReturn*)malloc(sizeof(MMKVCStringListReturn));
+    auto rtn = (MMKVCStringListReturn *) malloc(sizeof(MMKVCStringListReturn));
 
     if (rtn == nullptr) {
         return nullptr;
     }
 
     rtn->size = 0;
-    rtn->items = (char**)malloc(sizeof(char**) * vector.size());
+    rtn->items = (char **) malloc(sizeof(char **) * vector.size());
     if (rtn->items == nullptr) {
         return nullptr;
     }
-    for (std::string str : vector) {
+    for (std::string str: vector) {
         (rtn->items)[rtn->size] = stringToChar(str);
         (rtn->size) += 1;
     }
     return rtn;
 }
 
-extern "C" void mmkvc_setStringList(MMKV* mmkv,
-                                    const char* key,
-                                    const char** value,
+extern "C" void mmkvc_setStringList(MMKV *mmkv,
+                                    const char *key,
+                                    const char **value,
                                     size_t size,
                                     int expire) {
     std::vector<std::string> vector;
@@ -198,47 +202,47 @@ extern "C" void mmkvc_setStringList(MMKV* mmkv,
     mmkv->set(vector, key, expire);
 }
 
-extern "C" bool mmkvc_remove(MMKV* mmkv, const char* key) {
+extern "C" bool mmkvc_remove(MMKV *mmkv, const char *key) {
     return mmkv->removeValueForKey(key);
 }
 
-extern "C" void mmkvc_clear(MMKV* mmkv) {
+extern "C" void mmkvc_clear(MMKV *mmkv) {
     mmkv->clearAll();
 }
 
-extern "C" bool mmkvc_destroy(MMKV* mmkv) {
+extern "C" bool mmkvc_destroy(MMKV *mmkv) {
     return MMKV::removeStorage(mmkv->mmapID(), (&mmkv->getRootDir()));
 }
 
-extern "C" bool mmkvc_isAlive(MMKV* mmkv) {
+extern "C" bool mmkvc_isAlive(MMKV *mmkv) {
     return MMKV::isFileValid(mmkv->mmapID(), (&mmkv->getRootDir()));
 }
 
-extern "C" int mmkvc_size(MMKV* mmkv) {
+extern "C" int mmkvc_size(MMKV *mmkv) {
     return mmkv->count();
 }
 
-extern "C" MMKVCStringListReturn* mmkvc_allKeys(MMKV* mmkv) {
+extern "C" MMKVCStringListReturn *mmkvc_allKeys(MMKV *mmkv) {
     std::vector<std::string> vector = mmkv->allKeys();
 
-    auto rtn = (MMKVCStringListReturn*)malloc(sizeof(MMKVCStringListReturn));
+    auto rtn = (MMKVCStringListReturn *) malloc(sizeof(MMKVCStringListReturn));
 
     if (rtn == nullptr) {
         return nullptr;
     }
 
     rtn->size = 0;
-    rtn->items = (char**)malloc(sizeof(char**) * vector.size());
+    rtn->items = (char **) malloc(sizeof(char **) * vector.size());
     if (rtn->items == nullptr) {
         return nullptr;
     }
-    for (std::string str : vector) {
+    for (std::string str: vector) {
         (rtn->items)[rtn->size] = stringToChar(str);
         (rtn->size) += 1;
     }
     return rtn;
 }
 
-extern "C" int mmkvc_exists(MMKV* mmkv, char* key) {
+extern "C" int mmkvc_exists(MMKV *mmkv, char *key) {
     return mmkv->containsKey(key);
 }
