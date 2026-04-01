@@ -2,6 +2,7 @@ package top.kagg886.mkmb
 
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.update
+import kotlinx.cinterop.ExperimentalForeignApi
 import platform.darwin.NSObject
 
 internal class AppleMMKV(internal val handle: NSObject) : MMKV {
@@ -128,10 +129,11 @@ internal class AppleMMKV(internal val handle: NSObject) : MMKV {
 
 }
 
+@OptIn(ExperimentalForeignApi::class)
 actual fun MMKV.Companion.defaultMMKV(mode: MMKVMode, cryptKey: String?): MMKV {
     return AppleMMKV(NativeMMKVImpl.defaultMMKV(mode.value.toULong(), cryptKey))
 }
-
+@OptIn(ExperimentalForeignApi::class)
 actual fun MMKV.Companion.mmkvWithID(id: String, mode: MMKVMode, cryptKey: String?): MMKV {
     return AppleMMKV(NativeMMKVImpl.mmkvWithID(id, mode.value.toULong(), cryptKey))
 }
