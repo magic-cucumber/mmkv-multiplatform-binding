@@ -47,7 +47,8 @@ private:
 
 extern "C" __declspec(dllexport) void mmkvc_init(const char *path, int level, Logger *logger) {
     auto *handler = new KotlinMMKVHandler(logger); //TODO will not be free, but it should initialize once
-    MMKV::initializeMMKV(path, (MMKVLogLevel) level, handler);
+    auto* wpath = stringToWString(path);
+    MMKV::initializeMMKV(wpath, (MMKVLogLevel) level, handler);
 }
 
 extern "C" __declspec(dllexport) MMKV* mmkvc_defaultMMKV(int mode, char* cryptKey) {
