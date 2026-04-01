@@ -95,17 +95,17 @@ Java_top_kagg886_mkmb_NativeMMKV_mmkvc_1mmkvWithID(JNIEnv* env,
                                                    jint mode,
                                                    jstring cryptKey) {
     auto mmapIDStr = jstring2cppstring(env, id);
-    MMKV* mmkv = nullptr;
-    if (cryptKey != NULL) {
-        auto cryptKeyStr = jstring2cppstring(env, cryptKey);
-        if (!cryptKeyStr.empty()) {
-            mmkv = MMKV::mmkvWithID(mmapIDStr, mmkv::DEFAULT_MMAP_SIZE, (MMKVMode)mode, &cryptKeyStr);
-        } else {
-            mmkv = MMKV::mmkvWithID(mmapIDStr, mmkv::DEFAULT_MMAP_SIZE, (MMKVMode)mode, nullptr);
-        }
-    } else {
-        mmkv = MMKV::mmkvWithID(mmapIDStr, mmkv::DEFAULT_MMAP_SIZE, (MMKVMode)mode, nullptr);
+
+    auto config = MMKVConfig();
+    config.mode = (MMKVMode) mode;
+    config.aes256 = false;
+
+    if (cryptKey != nullptr) {
+        auto k = jstring2cppstring(env,cryptKey);
+        config.cryptKey = &k;
     }
+
+    MMKV* mmkv = MMKV::mmkvWithID(mmapIDStr, config);
     mmkv->enableAutoKeyExpire(MMKV::ExpireNever);
     return (jlong)mmkv;
 }
