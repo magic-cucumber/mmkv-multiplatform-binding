@@ -28,7 +28,7 @@ fun Project.publishing(platform: Platform) = extensions.configure<MavenPublishBa
         name.set("MMKV-multiplatform-binding")
         description.set("An api accesser wrapped tencent-mmkv by kotlin ")
         inceptionYear.set("2025")
-        url.set("https://github.com/magic-cucumber/mmkv-kotlin-multiplatform-binding")
+        url.set("https://github.com/magic-cucumber/mmkv-multiplatform-binding")
         licenses {
             license {
                 name.set("The Apache License, Version 2.0")
@@ -40,13 +40,13 @@ fun Project.publishing(platform: Platform) = extensions.configure<MavenPublishBa
             developer {
                 id.set("kagg886")
                 name.set("kagg886")
-                url.set("https://github.com/kagg886/")
+                url.set("https://github.com/magic-cucumber/")
             }
         }
         scm {
-            url.set("https://github.com/magic-cucumber/mmkv-kotlin-multiplatform-binding")
-            connection.set("scm:git:git://github.com/magic-cucumber/mmkv-kotlin-multiplatform-binding.git")
-            developerConnection.set("scm:git:ssh://git@github.com/magic-cucumber/mmkv-kotlin-multiplatform-binding.git")
+            url.set("https://github.com/magic-cucumber/mmkv-multiplatform-binding")
+            connection.set("scm:git:git://github.com/magic-cucumber/mmkv-multiplatform-binding.git")
+            developerConnection.set("scm:git:ssh://git@github.com/magic-cucumber/mmkv-multiplatform-binding.git")
         }
     }
 }
